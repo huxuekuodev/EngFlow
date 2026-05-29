@@ -1,5 +1,6 @@
-from .base import create_llm
+from .base import create_llm, OllamaEmbedding
 
 __all__ = [
-    "create_llm"
+    "create_llm",
+    "OllamaEmbedding",
 ]
