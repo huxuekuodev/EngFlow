@@ -155,7 +155,7 @@ class Vector:
         self._milvus = Milvus(embedding_function=embed,
                               connection_args={"uri": "http://localhost:19530", "alias": "default","token": "root:Milvus"},
                               auto_id=True,
-                              drop_old=True,
+                              drop_old=False,
                               collection_name=collection_name,
                               vector_field=["vector"],
                               index_params=self.__index_params(),

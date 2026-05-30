@@ -56,7 +56,7 @@ class SummaryOptimizer:
 
 if __name__ == "__main__":
     parser = CustomMDParser(
-        md_path="../data/2026年海淀区高三二模英语阅读解析（C、D篇）.md",
+        md_path="../../data/2026年海淀区高三二模英语阅读解析（C、D篇）.md",
         merge_titles=[
             ["阅读 D 篇", "阅读 C 篇", "逐选项定位汇总表"],
             ["【原文逐句对照与考点解析】", "【题目详细解析】"],

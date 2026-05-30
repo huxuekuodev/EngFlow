@@ -76,6 +76,14 @@ class OllamaEmbedding(Embeddings):
         return self.get_embeddings(texts)
 
 
+def create_rerank_llm(model_name:str="BAAI/bge-reranker-v2-m3",temperature:float=0.0):
+    model = ChatOpenAI(
+        model=model_name,
+        base_url="https://api.siliconflow.cn/v1/rerank",
+        temperature=temperature,
+    )
+    return model
+
 if __name__ == "__main__":
-    llm = create_llm()
+    llm = create_rerank_llm()
     print(llm.invoke("你知道我是谁么"))
