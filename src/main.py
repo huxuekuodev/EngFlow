@@ -1,5 +1,5 @@
 import uuid
-import  os
+import os
 from typing import List
 
 from langchain_core.documents import Document
@@ -11,33 +11,9 @@ from optimizer.hypo_question_generator import HypoQuestionResult
 from optimizer.summary_optimizer import SummaryResult
 from parser import CustomMDParser
 from llm import create_llm, OllamaEmbedding
-from vector import Vector,CustomPGDocStore
+from vector import Vector, CustomPGDocStore
 from langchain_classic.retrievers import MultiVectorRetriever
-
-
-def merge_hypo_summary(hypo_result:List[HypoQuestionResult],
-                       summary_result:List[SummaryResult],
-                       child_document_list:List[List[Document]],
-                       doc_ids:List[str]) -> List[Document]:
-    """
-        摘要内容、假设问题,父子块合并
-    :param hypo_result:
-    :param summary_result:
-    :param doc_ids:
-    :return:
-    """
-    print(f"假设性问题长度：{len(hypo_result)}, 摘要问题长度：{len(summary_result)}，父子块长度：{len(child_document_list)}主键ID长度：{len(doc_ids)}")
-    document_list = []
-    for hypo, summary,children,id in zip(hypo_result, summary_result, child_document_list, doc_ids):
-        document_list.extend([Document(page_content=q,metadata={"doc_id":id})for q in hypo.Question])
-        document_list.extend([Document(page_content=q, metadata={"doc_id": id}) for q in summary.Question])
-        document_list.extend(Document(page_content=d.page_content,metadata={"doc_id": id}) for d in children)
-    print(f"合并后的长度{len(document_list)}")
-    return document_list
-
-# Document 去重
-def unique_documents_by_RRF(doc_list:List[List[Document]],k:int=60) -> List[Document]:
-    pass
+from rerank import rrf_rerank
 
 if __name__ == "__main__":
     # parser = CustomMDParser("../data/2026年海淀区高三二模英语阅读解析（C、D篇）.md",    merge_titles=[
@@ -71,16 +47,23 @@ if __name__ == "__main__":
     #
     # merged_list = merge_hypo_summary(hypo_result, summary_result,child_documents,doc_id_list)
 
-    vector = Vector("engflow_collection",OllamaEmbedding())
-    engine = create_engine(os.getenv("POSTGRE_URL",""))
-    pg_vector = CustomPGDocStore(engine,"engflow_parents_documents")
-    retriever = MultiVectorRetriever(vectorstore=vector._milvus,docstore=pg_vector,doc_key="doc_id")
+    vector = Vector("engflow_collection", OllamaEmbedding())
+    engine = create_engine(os.getenv("POSTGRE_URL", ""))
+    pg_vector = CustomPGDocStore(engine, "engflow_parents_documents")
+    retriever = MultiVectorRetriever(
+        vectorstore=vector._milvus, docstore=pg_vector, doc_key="doc_id"
+    )
     # 添加文档
     # retriever.vectorstore.add_documents(merged_list)
     # retriever.docstore.mset(list(zip(doc_id_list,document_list)))
 
     HypoQuestionGenerator = HypoQuestionGenerator(llm)
-    chain = RunnableLambda(lambda q: HypoQuestionGenerator.query_to_hypo_list(q)) | retriever.map()
+    chain = (
+        RunnableLambda(lambda q: HypoQuestionGenerator.query_to_hypo_list(q))
+        | retriever.map()
+        | rrf_rerank()
+    )
 
     print(chain.invoke("关于动词原型考点"))
+
     pass
