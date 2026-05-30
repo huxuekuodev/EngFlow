@@ -74,10 +74,10 @@ class CustomPGDocStore(BaseStore[str, Document]):
                 conn.execute(query, {"doc_id": key})
 
 
-print("自定义文档库已初始化，准备进行测试...")
-# 实例化你的自定义文档库（替代之前的 InMemoryStore）
-docstore = CustomPGDocStore(engine, PARENT_TABLE_NAME)
-print("正在测试 mset 方法...")
-docstore.mset(
-    [(1, Document(page_content="这是一个测试文档", metadata={"source": "测试"}))],
-)
+# print("自定义文档库已初始化，准备进行测试...")
+# # 实例化你的自定义文档库（替代之前的 InMemoryStore）
+# docstore = CustomPGDocStore(engine, PARENT_TABLE_NAME)
+# print("正在测试 mset 方法...")
+# docstore.mset(
+#     [(1, Document(page_content="这是一个测试文档", metadata={"source": "测试"}))],
+# )
