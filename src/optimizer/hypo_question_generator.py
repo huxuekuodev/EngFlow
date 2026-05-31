@@ -11,7 +11,7 @@ from typing import List
 
 from sqlalchemy import create_engine
 
-from llm import OllamaEmbedding,create_llm
+from llm import OllamaEmbedding, create_llm
 from prompts import DOC_TO_HYPO_PROMPT, QUERY_TO_HYPO_PROMPT
 from vector import Vector, CustomPGDocStore
 
@@ -83,12 +83,40 @@ class HypoQuestionGenerator:
         result = chain.batch(doc)
         return result
 
+    async def async_doc_to_hypo_bath(
+        self, doc: List[Document]
+    ) -> List[HypoQuestionResult]:
+        """
+        异步批量处理文档，生成问题
+        :param doc: 文档列表
+        :return: 问题列表
+        """
+        output_parser = PydanticOutputParser(pydantic_object=HypoQuestionResult)
+        chain = (
+            {
+                "doc": RunnableLambda(lambda doc: doc.page_content),
+                "structured_json": RunnableLambda(
+                    lambda _: output_parser.get_format_instructions()
+                ),
+            }
+            | self.doc_prompt
+            | self.llm.with_structured_output(HypoQuestionResult)
+        )
+        result = await chain.abatch(doc)
+        return result
+
+
 if __name__ == "__main__":
     vector = Vector("engflow_collection", OllamaEmbedding())
     engine = create_engine(os.getenv("POSTGRE_URL", ""))
     pg_vector = CustomPGDocStore(engine, "engflow_parents_documents")
-    retriever = MultiVectorRetriever(vectorstore=vector._milvus, docstore=pg_vector, doc_key="doc_id")
+    retriever = MultiVectorRetriever(
+        vectorstore=vector._milvus, docstore=pg_vector, doc_key="doc_id"
+    )
     llm = create_llm()
     HypoQuestionGenerator = HypoQuestionGenerator(llm)
-    chain = RunnableLambda(lambda q:HypoQuestionGenerator.query_to_hypo_list(q)) | retriever.map()
+    chain = (
+        RunnableLambda(lambda q: HypoQuestionGenerator.query_to_hypo_list(q))
+        | retriever.map()
+    )
     print(chain.invoke("你好"))

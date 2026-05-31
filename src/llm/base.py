@@ -7,10 +7,9 @@ import dotenv
 import os
 
 dotenv.load_dotenv()
-from langchain_openai import ChatOpenAI
+from langchain_openai import ChatOpenAI, OpenAI
 from typing import List
 from langchain_core.embeddings import Embeddings  # 👈 必须导入基类
-from langchain_openai import ChatOpenAI
 from ollama import Client  # 确保你安装了 ollama 库
 
 
@@ -30,6 +29,19 @@ def create_llm(model_name: str = "Qwen/Qwen3-8B", temperature: float = 0.0):
         temperature=temperature,
     )
     return model
+
+
+def create_openai(model: str = "Qwen/Qwen3-8B"):
+    """
+    创建 OpenAI 模型实例
+
+    参数:
+        model: 模型名称，默认为空字符串，表示使用默认模型
+
+    返回值:
+        OpenAI 模型实例
+    """
+    return OpenAI(model=model)
 
 
 class OllamaEmbedding(Embeddings):
@@ -76,13 +88,16 @@ class OllamaEmbedding(Embeddings):
         return self.get_embeddings(texts)
 
 
-def create_rerank_llm(model_name:str="BAAI/bge-reranker-v2-m3",temperature:float=0.0):
+def create_rerank_llm(
+    model_name: str = "BAAI/bge-reranker-v2-m3", temperature: float = 0.0
+):
     model = ChatOpenAI(
         model=model_name,
         base_url="https://api.siliconflow.cn/v1/rerank",
         temperature=temperature,
     )
     return model
+
 
 if __name__ == "__main__":
     llm = create_rerank_llm()

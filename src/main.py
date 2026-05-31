@@ -29,7 +29,7 @@ if __name__ == "__main__":
     # for i in range(len(document_list)):
     #     document_list[i].metadata[doc_key] = doc_id_list[i]
     #
-    llm = create_llm()
+    # llm = create_llm()
     # # 生成假设问题
     # print(f"批量生成假设性问题开始")
     # hypo_generator = HypoQuestionGenerator(llm)
@@ -47,23 +47,23 @@ if __name__ == "__main__":
     #
     # merged_list = merge_hypo_summary(hypo_result, summary_result,child_documents,doc_id_list)
 
-    vector = Vector("engflow_collection", OllamaEmbedding())
-    engine = create_engine(os.getenv("POSTGRE_URL", ""))
-    pg_vector = CustomPGDocStore(engine, "engflow_parents_documents")
-    retriever = MultiVectorRetriever(
-        vectorstore=vector._milvus, docstore=pg_vector, doc_key="doc_id"
-    )
+    # vector = Vector("engflow_collection", OllamaEmbedding())
+    # engine = create_engine(os.getenv("POSTGRE_URL", ""))
+    # pg_vector = CustomPGDocStore(engine, "engflow_parents_documents")
+    # retriever = MultiVectorRetriever(
+    #     vectorstore=vector._milvus, docstore=pg_vector, doc_key="doc_id"
+    # )
     # 添加文档
     # retriever.vectorstore.add_documents(merged_list)
     # retriever.docstore.mset(list(zip(doc_id_list,document_list)))
 
-    HypoQuestionGenerator = HypoQuestionGenerator(llm)
-    chain = (
-        RunnableLambda(lambda q: HypoQuestionGenerator.query_to_hypo_list(q))
-        | retriever.map()
-        | rrf_rerank()
-    )
+    # HypoQuestionGenerator = HypoQuestionGenerator(llm)
+    # chain = (
+    #     RunnableLambda(lambda q: HypoQuestionGenerator.query_to_hypo_list(q))
+    #     | retriever.map()
+    #     | rrf_rerank()
+    # )
 
-    print(chain.invoke("关于动词原型考点"))
+    # print(chain.invoke("关于动词原型考点"))
 
     pass

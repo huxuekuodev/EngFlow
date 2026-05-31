@@ -53,6 +53,26 @@ class SummaryOptimizer:
         results = chain.batch(documents)
         return results
 
+    async def async_batch_optimize(
+        self, documents: List[Document]
+    ) -> List[SummaryResult]:
+        """
+        异步批量处理documents,返回每个document的问题集合
+        """
+        structured_json = PydanticOutputParser(
+            pydantic_object=SummaryResult
+        ).get_format_instructions()
+        chain = (
+            {
+                "doc": RunnableLambda(lambda doc: doc.page_content),
+                "structured_json": RunnableLambda(lambda _: structured_json),
+            }
+            | self.prompt
+            | self.llm.with_structured_output(SummaryResult)
+        )
+        results = await chain.abatch(documents)
+        return results
+
 
 if __name__ == "__main__":
     parser = CustomMDParser(
