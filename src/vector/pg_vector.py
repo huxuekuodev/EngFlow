@@ -1,5 +1,6 @@
+from dataclasses import dataclass
 import json
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, text, Engine
 from langchain_core.documents import Document
 from langchain_core.stores import BaseStore
 
@@ -15,12 +16,12 @@ engine = create_engine(CONNECTION_STRING)
 # ==========================================
 # 2. 自定义对接你的物理表 engflow_parents_documents
 # ==========================================
+@dataclass
 class CustomPGDocStore(BaseStore[str, Document]):
     """适配你既有 PG 表结构 (doc_id, content, metadata) 的文档持久化存储器"""
 
-    def __init__(self, engine, table_name):
-        self.engine = engine
-        self.table_name = table_name
+    engine: Engine
+    table_name: str
 
     def yield_keys(self):
         with self.engine.connect() as conn:
@@ -53,11 +54,13 @@ class CustomPGDocStore(BaseStore[str, Document]):
     def mset(self, key_value_pairs):
         with self.engine.begin() as conn:
             for key, doc in key_value_pairs:
-                query = text(f"""
+                query = text(
+                    f"""
                     INSERT INTO {self.table_name} (doc_id, content, metadata) 
                     VALUES (:doc_id, :content, :metadata)
                     ON CONFLICT (doc_id) DO UPDATE SET content = EXCLUDED.content, metadata = EXCLUDED.metadata
-                """)
+                """
+                )
                 conn.execute(
                     query,
                     {
@@ -74,10 +77,10 @@ class CustomPGDocStore(BaseStore[str, Document]):
                 conn.execute(query, {"doc_id": key})
 
 
-# print("自定义文档库已初始化，准备进行测试...")
-# # 实例化你的自定义文档库（替代之前的 InMemoryStore）
-# docstore = CustomPGDocStore(engine, PARENT_TABLE_NAME)
-# print("正在测试 mset 方法...")
-# docstore.mset(
-#     [(1, Document(page_content="这是一个测试文档", metadata={"source": "测试"}))],
-# )
+print("自定义文档库已初始化，准备进行测试...")
+# 实例化你的自定义文档库（替代之前的 InMemoryStore）
+docstore = CustomPGDocStore(engine, PARENT_TABLE_NAME)
+print("正在测试 mset 方法...")
+docstore.mset(
+    [(1, Document(page_content="这是一个测试文档", metadata={"source": "测试"}))],
+)
