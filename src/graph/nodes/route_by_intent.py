@@ -5,7 +5,7 @@ from langchain_core.output_parsers import PydanticOutputParser
 from pydantic import BaseModel, Field
 from typing import Optional, Literal
 from langgraph.graph import END
-from graph.state import OverallState,WeatherContext
+from graph.state import OverallState, WeatherContext
 from langgraph.types import Command
 from llm import create_llm
 from prompts import INTENT_PROMPT
@@ -44,7 +44,7 @@ async def route_by_intent(state: OverallState) -> Command[OverallState]:
             "router_info": output_parser.get_format_instructions(),
             "weather_json": weather_parser.get_format_instructions(),
             "query": state["query"],
-            "date": datetime.now().strftime("%Y%m%d")
+            "date": datetime.now().strftime("%Y%m%d"),
         }
     )
     print(intent_info)

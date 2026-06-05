@@ -9,9 +9,9 @@ async def weather_tool(state: OverallState) -> Command:
     query = state["current_context"]
 
     if not query["date"] or not query["addr"]:
-        interrupt({"prompt": "请检查是否填写的必要信息*（日期和地址）"})
+        user_input = interrupt({"prompt": "请检查是否填写的必要信息*（日期和地址）"})
         # 再次进行意图识别
-        return Command(goto="route_by_intent")
+        return Command(update={"query": user_input}, goto="route_by_intent")
 
     # 查询天气
     print("对接查询天气")
